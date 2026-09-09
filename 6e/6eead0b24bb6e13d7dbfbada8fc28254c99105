@@ -1,0 +1,19 @@
+CONCEPTION.md
+  s_02fe70aa06714b::t_ccdbfd6e18ab76 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6e6eead0b24bb6e13d7dbfbada8fc28254c99105",
+  "prompts": {},
+  "sessions": {
+    "s_02fe70aa06714b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a086cc-8717-7f00-bbf4-1cce99eafefd",
+        "model": "unknown"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
