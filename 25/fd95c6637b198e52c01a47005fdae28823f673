@@ -1,0 +1,20 @@
+tests/cli/main.test.ts
+  s_aa08b52fc08ea2::t_28862735594377 1-13,15-16
+  s_aa08b52fc08ea2::t_e0be05de06298e 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "25fd95c6637b198e52c01a47005fdae28823f673",
+  "prompts": {},
+  "sessions": {
+    "s_aa08b52fc08ea2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a09edb-4fb2-7f11-ac72-a7ee05eb1adf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
