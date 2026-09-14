@@ -1,0 +1,44 @@
+src/config/server-config.ts
+  s_aa08b52fc08ea2::t_ed805c04146376 1-4
+src/cli/main.ts
+  s_aa08b52fc08ea2::t_e0be05de06298e 12,18,20
+  s_aa08b52fc08ea2::t_5ad1f35382160a 1-11,13-17,19,21-22
+src/cli/usage.ts
+  s_aa08b52fc08ea2::t_e0be05de06298e 1-2,4-7
+  s_aa08b52fc08ea2::t_5ad1f35382160a 3
+tests/cli/parse-arguments.test.ts
+  s_aa08b52fc08ea2::t_a6cf3d6d5eb145 1-14
+  s_aa08b52fc08ea2::t_e0be05de06298e 32,39,80
+  s_aa08b52fc08ea2::t_f85921b16b4c9f 35-38,40-41
+  s_aa08b52fc08ea2::t_572b8edc099318 28-31,33-34
+  s_aa08b52fc08ea2::t_48624346648484 72-75
+  s_aa08b52fc08ea2::t_a814409ad85da5 76-79,81-82
+  s_aa08b52fc08ea2::t_2a12e0042d8b3b 46,53-56,60,64-68,87
+  s_aa08b52fc08ea2::t_c0c74aba7f6f6d 49,61-63,69-71
+  s_aa08b52fc08ea2::t_35545941c1a46a 42-45,47-48
+  s_aa08b52fc08ea2::t_d354a30aef45ee 50-52,57-59
+  s_aa08b52fc08ea2::t_28862735594377 83-86,88-89
+  s_aa08b52fc08ea2::t_eebf349852466b 15-27
+src/cli/parse-arguments.ts
+  s_aa08b52fc08ea2::t_28a09b3a3f41ef 45-46,48
+  s_aa08b52fc08ea2::t_2a12e0042d8b3b 1-2,16-38,41-44,47,51-55,58-67
+  s_aa08b52fc08ea2::t_a22afa35a11d1d 39
+  s_aa08b52fc08ea2::t_d71431343e82ed 40,49-50,56-57
+  s_aa08b52fc08ea2::t_ed805c04146376 3-15,68-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6de825582be9622857e21d9ae150c2dc422b47d4",
+  "prompts": {},
+  "sessions": {
+    "s_aa08b52fc08ea2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a09edb-4fb2-7f11-ac72-a7ee05eb1adf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
