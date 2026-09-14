@@ -1,0 +1,23 @@
+tsconfig.json
+  s_aa08b52fc08ea2::t_a6cf3d6d5eb145 1-12
+package.json
+  s_aa08b52fc08ea2::t_a6cf3d6d5eb145 1-16
+package-lock.json
+  s_aa08b52fc08ea2::t_196ac250ffc6db 1-566
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5ab040c0014cbeef47255db5c7f8430fed90b896",
+  "prompts": {},
+  "sessions": {
+    "s_aa08b52fc08ea2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a09edb-4fb2-7f11-ac72-a7ee05eb1adf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
