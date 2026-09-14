@@ -12,16 +12,62 @@ Voici la conception du projet.
 
 ## Parcours d'une requête avec `dig`
 
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant Dig as dig
+    participant OSClient as Pile réseau du client
+    participant Socket as Socket UDP<br/>127.0.0.1:5353
+    participant Server as Serveur DNS
+    participant Codec as Codec DNS
+    participant Resolver as Résolveur
+
+    Dig->>Dig: Construit la requête DNS<br/>example.com / type A
+    Dig->>OSClient: Demande l'envoi des octets en UDP
+
+    Note over OSClient,Socket: Paquet IP → 127.0.0.1<br/>Datagramme UDP → port 5353
+
+    OSClient->>Socket: Transmet le datagramme au processus attaché au port
+    Socket->>Server: Buffer DNS + IP source + port source
+    Server->>Codec: Décode les octets
+    Codec-->>Server: Message DNS structuré
+    Server->>Resolver: Résout la question DNS
+    Resolver-->>Server: Réponse DNS structurée
+    Server->>Codec: Encode la réponse
+    Codec-->>Server: Buffer de réponse
+    Server->>Socket: Envoie le Buffer à l'IP et au port source
+    Socket-->>Dig: Datagramme UDP contenant la réponse DNS
+```
+
+## Couche CLI
+
+La CLI transforme les arguments fournis au processus en une configuration typée.
+Elle ne connaît ni les sockets ni le format des messages DNS.
+
 ```text
-dig @127.0.0.1 -p 5353 example.com A
+process.argv
     ↓
-socket UDP du serveur : reçoit les octets
+parseArguments(args)
     ↓
-codec DNS : décode la requête
-    ↓
-résolveur : cherche ou construit la réponse
-    ↓
-codec DNS : encode la réponse
-    ↓
-socket UDP du serveur : répond à dig
+CliResult
+    ├── help  → afficher l'aide
+    ├── error → afficher l'erreur et terminer avec le code 1
+    └── start → transmettre ServerConfig au futur orchestrateur
+```
+
+La configuration de développement par défaut est volontairement locale :
+
+```ts
+{
+  host: "127.0.0.1",
+  port: 5353
+}
+```
+
+Exemples :
+
+```bash
+npm run dev -- --help
+npm run dev -- --host 127.0.0.1 --port 5353
 ```
