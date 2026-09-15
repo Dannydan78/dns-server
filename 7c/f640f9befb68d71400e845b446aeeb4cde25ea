@@ -1,0 +1,33 @@
+src/server/udp-server.ts
+  s_c6804d0da9788d::t_11bb91985e34a8 21,43-45
+  s_c6804d0da9788d::t_ef2ddffa835265 1-20,22-42,46-58,61,64-67,69-73,76,78-79,82-83,85,88-159
+  s_c6804d0da9788d::t_7dac641ebd15d7 59-60
+  s_c6804d0da9788d::t_72d2ca1fd3815a 62-63
+  s_c6804d0da9788d::t_3251abadb9c3d5 68
+  s_c6804d0da9788d::t_b39963f1996607 74-75
+  s_c6804d0da9788d::t_8405edf07a53ba 77
+  s_c6804d0da9788d::t_18177e1c29c4e7 80-81
+  s_c6804d0da9788d::t_39551aacb35cf4 84
+  s_c6804d0da9788d::t_6c7ae0fde23637 86-87
+tests/server/udp-server.test.ts
+  s_c6804d0da9788d::t_ef2ddffa835265 1-10,12,16-111,116-117,119-122,124-128,130-168
+  s_c6804d0da9788d::t_11bb91985e34a8 11,13-15,112-115,118,123,129
+CONCEPTION.md
+  s_c6804d0da9788d::t_11bb91985e34a8 74-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7cf640f9befb68d71400e845b446aeeb4cde25ea",
+  "prompts": {},
+  "sessions": {
+    "s_c6804d0da9788d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0a459-2873-71c2-8d08-4eda903ee9e6",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
