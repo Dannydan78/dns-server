@@ -71,3 +71,70 @@ Exemples :
 npm run dev -- --help
 npm run dev -- --host 127.0.0.1 --port 5353
 ```
+
+## Couche serveur UDP
+
+La couche serveur UDP transporte des datagrammes sans connaître leur format.
+Elle ne sait donc pas encore ce qu'est une question ou une réponse DNS.
+
+Son interface reçoit un handler qui forme la seam avec le futur orchestrateur :
+
+```text
+Datagramme UDP reçu
+    ↓
+{ payload: Buffer, remote: { address, port, family } }
+    ↓
+DatagramHandler
+    ├── Buffer    → envoyer ces octets à remote
+    ├── undefined → ne pas répondre
+    └── exception → rapporter une erreur interne
+```
+
+Le module expose seulement son cycle de vie :
+
+```ts
+type UdpServer = {
+  start(): Promise<BoundAddress>;
+  close(): Promise<void>;
+};
+```
+
+`start()` retourne l'adresse réellement réservée. Cela permet aux tests d'utiliser
+le port `0`, qui demande au système d'exploitation de choisir un port disponible.
+La CLI continue de refuser ce port, car il ne serait pas pratique pour un utilisateur
+qui doit connaître l'adresse fixe de son serveur.
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant Client
+    participant OS as Système d'exploitation
+    participant Socket as Socket UDP
+    participant Server as Serveur UDP
+    participant Handler as DatagramHandler
+
+    Server->>Socket: bind(host, port)
+    Socket->>OS: Réserver l'adresse locale
+    OS-->>Server: Socket en écoute
+
+    Client->>OS: Datagramme UDP
+    OS->>Socket: Buffer + adresse/port source
+    Socket->>Server: Événement message
+    Server->>Handler: handleDatagram(payload, remote)
+
+    alt Le handler retourne un Buffer
+        Handler-->>Server: Buffer de réponse
+        Server->>Socket: send(response, remote.port, remote.address)
+        Socket-->>Client: Datagramme de réponse
+    else Le handler retourne undefined
+        Handler-->>Server: undefined
+        Note over Server,Client: Aucune réponse envoyée
+    else Le handler lève une exception
+        Handler--xServer: Exception
+        Note over Server: Rapporter l'erreur sans l'envoyer au client
+    end
+```
+
+Le serveur UDP n'appelle directement ni le codec ni le résolveur. Le futur
+orchestrateur fournira le `DatagramHandler` qui enchaînera ces couches.
