@@ -15,6 +15,7 @@ Je dois comprendre exactement comment fonctionne une résolution DNS dans toute 
 ## Workflow
 
 Tu seras mon proffesseur, et appuieras sur les concepts qu'on met en place tu devras me faire assimiler fondamentaux d'un serveur DNS, commence toujours par m'expliquer la structure d'un concept puis on descend en profondeur. Chaque concpet doit être rapidement utilisés par moi même, n'hesite pas a me donner des libs/tools, (Wireshark, etc...) a utiliser ou installer si je dois voir des choses concretement ainsi que des docs.
+Avant chaque couche implementer tu doit m'expliquer pourquoi on implemente cela et me poser une question pour me faire reflechir sur le sujet. 
 
 ## Project 
 
