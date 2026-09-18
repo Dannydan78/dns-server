@@ -138,3 +138,68 @@ sequenceDiagram
 
 Le serveur UDP n'appelle directement ni le codec ni le résolveur. Le futur
 orchestrateur fournira le `DatagramHandler` qui enchaînera ces couches.
+
+## Codec DNS : décodage de l'en-tête
+
+Le codec constitue une frontière de confiance : il transforme les octets reçus
+du réseau en données typées, sans effectuer lui-même d'entrée/sortie réseau.
+
+Tout message DNS commence par un en-tête de 12 octets composé de six entiers
+non signés de 16 bits, encodés en big-endian :
+
+```text
+0               15 16              31
++-----------------+-----------------+
+|       ID        |      FLAGS      |
++-----------------+-----------------+
+|     QDCOUNT     |     ANCOUNT     |
++-----------------+-----------------+
+|     NSCOUNT     |     ARCOUNT     |
++-----------------+-----------------+
+```
+
+Le premier décodeur conserve `FLAGS` sous forme d'un entier brut. Le décodage
+des bits qui le composent sera une étape distincte afin de ne pas mélanger la
+lecture des octets avec leur interprétation.
+
+Un message trop court est une entrée invalide attendue, et non une panne du
+programme. Le décodeur retourne donc une union discriminée plutôt que de lever
+une exception :
+
+```ts
+type DecodeHeaderResult =
+  | { ok: true; header: DnsHeader }
+  | {
+      ok: false;
+      error: "HEADER_TOO_SHORT";
+      expectedBytes: number;
+      actualBytes: number;
+    };
+```
+
+Cette erreur ne décide pas si le serveur doit ignorer le datagramme ou répondre
+avec `FORMERR`. Cette politique appartiendra à l'orchestrateur, qui dispose du
+contexte réseau nécessaire.
+
+### Interprétation du champ `FLAGS`
+
+Les 16 bits de `FLAGS` sont découpés selon la structure suivante :
+
+```text
+QR | OPCODE | AA | TC | RD | RA |  Z  | RCODE
+ 1      4      1    1    1    1    3      4    bits
+```
+
+Le décodage utilise un masque pour conserver les bits d'un champ, puis un
+décalage vers la droite lorsque le champ contient plusieurs bits :
+
+```ts
+const isResponse = (flags & 0x8000) !== 0;
+const opcode = (flags & 0x7800) >>> 11;
+const responseCode = flags & 0x000f;
+```
+
+`RD` et `RA` décrivent deux faits différents. `RD` indique que le client a
+demandé la récursion. `RA` indique que le serveur annonce qu'il peut la fournir.
+Leur présence ne prouve pas, à elle seule, qu'une résolution récursive a été
+effectuée.
