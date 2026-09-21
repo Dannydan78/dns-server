@@ -186,8 +186,8 @@ contexte réseau nécessaire.
 Les 16 bits de `FLAGS` sont découpés selon la structure suivante :
 
 ```text
-QR | OPCODE | AA | TC | RD | RA |  Z  | RCODE
- 1      4      1    1    1    1    3      4    bits
+QR | OPCODE | AA | TC | RD | RA | Z | AD | CD | RCODE
+ 1      4      1    1    1    1   1    1    1      4    bits
 ```
 
 Le décodage utilise un masque pour conserver les bits d'un champ, puis un
@@ -203,3 +203,108 @@ const responseCode = flags & 0x000f;
 demandé la récursion. `RA` indique que le serveur annonce qu'il peut la fournir.
 Leur présence ne prouve pas, à elle seule, qu'une résolution récursive a été
 effectuée.
+
+La RFC 1035 réservait initialement trois bits sous le nom `Z`. DNSSEC a ensuite
+attribué deux de ces bits à `AD` (Authenticated Data) et `CD` (Checking
+Disabled). Seul le premier bit reste réservé et doit être nul. Le codec expose
+donc ces trois valeurs séparément.
+
+### Décodage d'une question
+
+Une entrée de la section `Question` contient trois champs :
+
+```text
+QNAME | QTYPE | QCLASS
+```
+
+`QNAME` est une suite de labels préfixés par leur longueur. Une longueur nulle
+termine le nom :
+
+```text
+07 example 03 com 00 | 00 01 | 00 01
+└───── QNAME ──────┘   QTYPE   QCLASS
+```
+
+Le décodeur retourne aussi `bytesRead`, car `QNAME` a une taille variable. Cette
+information permettra au futur décodeur de message de trouver la question ou la
+section suivante sans recalculer sa position.
+
+Chaque longueur annoncée est comparée au nombre d'octets encore disponibles.
+Un label tronqué retourne `TRUNCATED_LABEL` plutôt que d'être accepté
+partiellement ou de provoquer une lecture hors limites. La même règle protège
+les quatre octets fixes de `QTYPE` et `QCLASS`.
+
+La compression des noms est détectée grâce aux deux bits de poids fort du
+premier octet (`11`), mais elle n'est pas encore suivie. Le décodeur retourne
+`UNSUPPORTED_NAME_COMPRESSION`. Le suivi sécurisé des pointeurs sera traité
+séparément, notamment pour empêcher les boucles de pointeurs malveillantes.
+
+### Assemblage d'une requête
+
+Le décodeur de requête compose les briques précédentes sans dupliquer leur
+logique :
+
+```text
+Buffer
+  ↓
+decodeHeader()
+  ↓
+decodeFlags(header.flags)
+  ↓
+decodeQuestion() × QDCOUNT
+  ↓
+DnsQuery
+```
+
+Le nombre de questions déclaré est vérifié avant la boucle avec la taille
+minimale possible d'une question : un octet terminal pour le nom, deux octets
+pour `QTYPE` et deux pour `QCLASS`. Cette vérification empêche un compteur
+mensonger de déclencher une boucle inutile.
+
+Si une question est invalide, le message entier est rejeté. L'erreur conserve
+l'index de la question et sa cause, mais aucune liste partielle n'est exposée au
+résolveur.
+
+Le résultat contient `bytesRead`. Des octets peuvent encore suivre les
+questions, notamment dans la section `Additional` utilisée par EDNS. Ils ne
+sont donc pas considérés automatiquement comme une erreur.
+
+## Validation d'une requête
+
+Le codec vérifie la structure du message sans décider si notre serveur sait le
+traiter. Une couche de validation sépare ces deux responsabilités :
+
+```text
+UDP → codec → validation → résolveur
+```
+
+La première politique du serveur accepte uniquement une requête standard
+(`QR = 0`, `OPCODE = 0`) contenant exactement une question. Elle refuse le bit
+`Z` réservé, mais ne le confond pas avec les bits DNSSEC `AD` et `CD`.
+
+Une requête validée expose sa question sous forme d'un tuple TypeScript à un
+élément. Le futur résolveur peut ainsi travailler sans revérifier si la question
+existe ou si plusieurs questions doivent être combinées.
+
+## Encodage d'une réponse vide
+
+La première forme de réponse contient l'en-tête et recopie la question, mais ne
+contient encore aucun Resource Record dans les sections suivantes :
+
+```text
+Header de réponse | Question recopiée | Answer vide
+```
+
+L'encodeur conserve automatiquement l'ID de la requête. Cet identifiant ne sert
+pas à acheminer le datagramme — UDP utilise pour cela les adresses IP et les
+ports — mais permet au client d'associer la réponse à la bonne requête en
+attente.
+
+Les flags de la réponse sont construits selon leur propriétaire :
+
+- le serveur positionne `QR`, `AA`, `RA` et `RCODE` ;
+- `RD`, `CD` et `OPCODE` proviennent de la requête ;
+- `TC`, `Z` et `AD` restent désactivés dans cette première version.
+
+L'encodeur protège également les contraintes du format : un label est limité à
+63 octets, un nom encodé à 255 octets et le `RCODE` classique à quatre bits.
