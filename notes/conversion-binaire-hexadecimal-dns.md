@@ -141,9 +141,9 @@ Il faut donc toujours connaître :
 Le champ `FLAGS` d'un en-tête DNS contient 16 bits :
 
 ```text
-Position : 15   14.....11  10   9    8    7    6..4   3.....0
-Champ    : QR |  OPCODE  | AA | TC | RD | RA |  Z  | RCODE
-Taille   :  1 |     4    |  1 |  1 |  1 |  1 |  3  |   4
+Position : 15   14.....11  10   9    8    7    6   5    4   3.....0
+Champ    : QR |  OPCODE  | AA | TC | RD | RA | Z | AD | CD | RCODE
+Taille   :  1 |     4    |  1 |  1 |  1 |  1 | 1 |  1 |  1 |   4
 ```
 
 | Champ | Taille | Rôle |
@@ -154,7 +154,9 @@ Taille   :  1 |     4    |  1 |  1 |  1 |  1 |  3  |   4
 | `TC` | 1 bit | Indique que le message a été tronqué |
 | `RD` | 1 bit | Indique que le client demande la récursion |
 | `RA` | 1 bit | Indique que le serveur propose la récursion |
-| `Z` | 3 bits | Bits réservés dans l'en-tête DNS classique |
+| `Z` | 1 bit | Bit encore réservé, qui doit rester à zéro |
+| `AD` | 1 bit | Indique des données authentifiées par DNSSEC |
+| `CD` | 1 bit | Demande la désactivation de la validation DNSSEC |
 | `RCODE` | 4 bits | Indique le résultat ou l'erreur de la réponse |
 
 ### Valeurs principales de `RCODE`
@@ -209,7 +211,9 @@ se trouve déjà tout à droite, donc aucun décalage n'est nécessaire.
 | `TC` | bit 9 | `0x0200` | 9 |
 | `RD` | bit 8 | `0x0100` | 8 |
 | `RA` | bit 7 | `0x0080` | 7 |
-| `Z` | bits 6 à 4 | `0x0070` | 4 |
+| `Z` | bit 6 | `0x0040` | 6 |
+| `AD` | bit 5 | `0x0020` | 5 |
+| `CD` | bit 4 | `0x0010` | 4 |
 | `RCODE` | bits 3 à 0 | `0x000f` | 0 |
 
 ## Méthode à appliquer pendant une analyse
@@ -218,7 +222,7 @@ Pour analyser manuellement une valeur comme `0x1234` :
 
 1. convertir chaque chiffre hexadécimal en quatre bits ;
 2. concaténer les groupes pour obtenir les 16 bits ;
-3. placer les séparateurs selon la structure DNS ;
+3. placer les séparateurs selon la structure DNS moderne ;
 4. relever la valeur de chaque champ ;
 5. convertir les champs de plusieurs bits en décimal ;
 6. consulter la signification de la valeur dans la spécification DNS.
@@ -228,7 +232,7 @@ hexadécimal
     ↓
 16 bits
     ↓
-découpage QR | OPCODE | AA | TC | RD | RA | Z | RCODE
+découpage QR | OPCODE | AA | TC | RD | RA | Z | AD | CD | RCODE
     ↓
 valeurs numériques
     ↓
@@ -270,6 +274,5 @@ FLAGS = 0000 0010 0000 0011
 avec :
 
 ```text
-QR | OPCODE | AA | TC | RD | RA | Z | RCODE
+QR | OPCODE | AA | TC | RD | RA | Z | AD | CD | RCODE
 ```
-
