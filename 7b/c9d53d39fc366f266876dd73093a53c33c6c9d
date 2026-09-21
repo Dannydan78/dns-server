@@ -1,0 +1,22 @@
+CONCEPTION.md
+  s_788f83ba326e1d::t_beb9ff7bf57b10 189-190,207-211,271-287
+  s_788f83ba326e1d::t_60a0ca0559ac8a 206,212-240
+  s_788f83ba326e1d::t_03c80c97264a53 241-270
+  s_788f83ba326e1d::t_b9cc80aa66539b 288-310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7bc9d53d39fc366f266876dd73093a53c33c6c9d",
+  "prompts": {},
+  "sessions": {
+    "s_788f83ba326e1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b4f5-38ab-77b2-9b10-c511f84bdb2f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
