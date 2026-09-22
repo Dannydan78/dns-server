@@ -96,8 +96,7 @@ test("refuse un label qui dépasse 63 octets", () => {
 
 test("encode un Resource Record A avec une IPv4 et un TTL", () => {
   const result = encodeAResponse(createQuery(), {
-    address: "192.0.2.1",
-    ttl: 300,
+    records: [{ address: "192.0.2.1", ttl: 300 }],
     authoritativeAnswer: true,
   });
 
@@ -139,9 +138,51 @@ test("encode un Resource Record A avec une IPv4 et un TTL", () => {
   );
 });
 
+test("encode tous les records d'un même RRset A", () => {
+  const result = encodeAResponse(createQuery(), {
+    records: [
+      { address: "192.0.2.1", ttl: 300 },
+      { address: "198.51.100.2", ttl: 600 },
+    ],
+  });
+
+  assert.equal(result.ok, true);
+
+  if (!result.ok) {
+    return;
+  }
+
+  const decoded = decodeQuery(result.payload);
+  assert.equal(decoded.ok, true);
+
+  if (!decoded.ok) {
+    return;
+  }
+
+  assert.equal(decoded.query.header.answerCount, 2);
+
+  const encodedNameLength = 13;
+  const resourceRecordLength = encodedNameLength + 14;
+  const firstRecordOffset = decoded.bytesRead;
+  const secondRecordOffset = firstRecordOffset + resourceRecordLength;
+
+  assert.equal(result.payload.readUInt32BE(firstRecordOffset + 17), 300);
+  assert.deepEqual(
+    result.payload.subarray(firstRecordOffset + 23, firstRecordOffset + 27),
+    Buffer.from([192, 0, 2, 1]),
+  );
+  assert.equal(result.payload.readUInt32BE(secondRecordOffset + 17), 600);
+  assert.deepEqual(
+    result.payload.subarray(secondRecordOffset + 23, secondRecordOffset + 27),
+    Buffer.from([198, 51, 100, 2]),
+  );
+});
+
 test("refuse une adresse qui n'est pas une IPv4", () => {
   assert.deepEqual(
-    encodeAResponse(createQuery(), { address: "2001:db8::1", ttl: 300 }),
+    encodeAResponse(createQuery(), {
+      records: [{ address: "2001:db8::1", ttl: 300 }],
+    }),
     {
       ok: false,
       error: "INVALID_IPV4_ADDRESS",
@@ -153,8 +194,7 @@ test("refuse une adresse qui n'est pas une IPv4", () => {
 test("refuse un TTL qui ne tient pas dans un entier non signé de 32 bits", () => {
   assert.deepEqual(
     encodeAResponse(createQuery(), {
-      address: "192.0.2.1",
-      ttl: 0x1_0000_0000,
+      records: [{ address: "192.0.2.1", ttl: 0x1_0000_0000 }],
     }),
     {
       ok: false,

@@ -10,10 +10,14 @@ export type EmptyResponseOptions = {
 };
 
 export type AResponseOptions = {
-  address: string;
-  ttl: number;
+  records: readonly [AAnswer, ...AAnswer[]];
   authoritativeAnswer?: boolean;
   recursionAvailable?: boolean;
+};
+
+export type AAnswer = {
+  readonly address: string;
+  readonly ttl: number;
 };
 
 export type EncodeResponseResult =
@@ -33,11 +37,18 @@ export type EncodeResponseResult =
       maximumBytes: number;
     }
   | { ok: false; error: "INVALID_IPV4_ADDRESS"; address: string }
-  | { ok: false; error: "INVALID_TTL"; ttl: number };
+  | { ok: false; error: "INVALID_TTL"; ttl: number }
+  | {
+      ok: false;
+      error: "TOO_MANY_ANSWERS";
+      answerCount: number;
+      maximumAnswers: number;
+    };
 
 const DNS_HEADER_LENGTH = 12;
 const MAXIMUM_LABEL_LENGTH = 63;
 const MAXIMUM_NAME_LENGTH = 255;
+const MAXIMUM_SECTION_RECORDS = 65_535;
 const OPCODE_SHIFT = 11;
 
 const RESPONSE_FLAG_MASKS = {
@@ -82,20 +93,13 @@ export function encodeAResponse(
   query: ValidatedQuery,
   options: AResponseOptions,
 ): EncodeResponseResult {
-  if (!isIPv4(options.address)) {
+  if (options.records.length > MAXIMUM_SECTION_RECORDS) {
     return {
       ok: false,
-      error: "INVALID_IPV4_ADDRESS",
-      address: options.address,
+      error: "TOO_MANY_ANSWERS",
+      answerCount: options.records.length,
+      maximumAnswers: MAXIMUM_SECTION_RECORDS,
     };
-  }
-
-  if (
-    !Number.isInteger(options.ttl) ||
-    options.ttl < 0 ||
-    options.ttl > 0xffff_ffff
-  ) {
-    return { ok: false, error: "INVALID_TTL", ttl: options.ttl };
   }
 
   const questionResult = encodeQuestion(query.questions[0]);
@@ -104,20 +108,18 @@ export function encodeAResponse(
     return questionResult;
   }
 
-  const nameResult = encodeName(query.questions[0].name);
+  const answerResults = options.records.map((record) =>
+    encodeAResourceRecord(query.questions[0].name, record),
+  );
+  const invalidAnswer = answerResults.find((result) => !result.ok);
 
-  if (!nameResult.ok) {
-    return nameResult;
+  if (invalidAnswer !== undefined) {
+    return invalidAnswer;
   }
 
-  const resourceRecordFields = Buffer.alloc(14);
-  resourceRecordFields.writeUInt16BE(1, 0);
-  resourceRecordFields.writeUInt16BE(1, 2);
-  resourceRecordFields.writeUInt32BE(options.ttl, 4);
-  resourceRecordFields.writeUInt16BE(4, 8);
-
-  const addressOctets = options.address.split(".").map(Number);
-  Buffer.from(addressOctets).copy(resourceRecordFields, 10);
+  const answerPayloads = answerResults.flatMap((result) =>
+    result.ok ? [result.payload] : [],
+  );
 
   const header = encodeHeader(
     query,
@@ -126,17 +128,12 @@ export function encodeAResponse(
       authoritativeAnswer: options.authoritativeAnswer,
       recursionAvailable: options.recursionAvailable,
     },
-    1,
+    options.records.length,
   );
 
   return {
     ok: true,
-    payload: Buffer.concat([
-      header,
-      questionResult.payload,
-      nameResult.payload,
-      resourceRecordFields,
-    ]),
+    payload: Buffer.concat([header, questionResult.payload, ...answerPayloads]),
   };
 }
 
@@ -182,6 +179,42 @@ function buildResponseFlags(
 
 function flagMaskWhen(condition: boolean, flagMask: number): number {
   return condition ? flagMask : 0;
+}
+
+function encodeAResourceRecord(
+  name: string,
+  { address, ttl }: AAnswer,
+): EncodeResponseResult {
+  if (!isIPv4(address)) {
+    return { ok: false, error: "INVALID_IPV4_ADDRESS", address };
+  }
+
+  const isValidTtl =
+    Number.isInteger(ttl) && ttl >= 0 && ttl <= 0xffff_ffff;
+
+  if (!isValidTtl) {
+    return { ok: false, error: "INVALID_TTL", ttl };
+  }
+
+  const nameResult = encodeName(name);
+
+  if (!nameResult.ok) {
+    return nameResult;
+  }
+
+  const resourceRecordFields = Buffer.alloc(14);
+  resourceRecordFields.writeUInt16BE(1, 0);
+  resourceRecordFields.writeUInt16BE(1, 2);
+  resourceRecordFields.writeUInt32BE(ttl, 4);
+  resourceRecordFields.writeUInt16BE(4, 8);
+
+  const addressOctets = address.split(".").map(Number);
+  Buffer.from(addressOctets).copy(resourceRecordFields, 10);
+
+  return {
+    ok: true,
+    payload: Buffer.concat([nameResult.payload, resourceRecordFields]),
+  };
 }
 
 function encodeQuestion(
