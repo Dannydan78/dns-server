@@ -308,3 +308,60 @@ Les flags de la réponse sont construits selon leur propriétaire :
 
 L'encodeur protège également les contraintes du format : un label est limité à
 63 octets, un nom encodé à 255 octets et le `RCODE` classique à quatre bits.
+
+### Encodage d'un Resource Record `A`
+
+Une réponse IPv4 ajoute le RRset complet dans la section `Answer` et positionne
+`ANCOUNT` au nombre de records encodés :
+
+```text
+NAME | TYPE | CLASS | TTL | RDLENGTH | RDATA
+```
+
+Pour un record `A` de classe Internet :
+
+```text
+TYPE     = 1 (A)
+CLASS    = 1 (IN)
+TTL      = entier non signé sur 32 bits
+RDLENGTH = 4
+RDATA    = les quatre octets de l'adresse IPv4
+```
+
+`RDLENGTH` délimite les données d'un record dans le flux, même si leur taille
+dépend déjà de certains types. Pour `A`, la valeur `4` constitue aussi une
+contrainte de cohérence : une adresse IPv4 ne peut pas être encodée avec une
+autre taille.
+
+Cette première version répète le nom complet dans `Answer`. Une version future
+pourra le remplacer par un pointeur de compression DNS.
+
+Un résultat `answer` contient au moins un record, ce que le type tuple
+`[ARecord, ...ARecord[]]` garantit. L'encodeur ne sélectionne pas arbitrairement
+une adresse : il encode le RRset entier afin de préserver la redondance, les
+possibilités de répartition de charge et la cohérence des caches DNS.
+
+## Résolution autoritative
+
+Le codec traduit des octets, mais il ne décide pas quelles données DNS doivent
+être retournées. Le résolveur autoritatif prend une zone et une question déjà
+validée, puis produit une décision métier sans connaître UDP ni le format
+binaire :
+
+```text
+Zone + Question
+      ↓
+resolveAuthoritativeQuestion()
+      ├── answer   → le RRset A demandé
+      ├── nodata   → le nom existe, mais pas ce RRset
+      ├── nxdomain → le nom n'existe pas
+      └── refused  → la classe DNS n'est pas servie
+```
+
+Une zone contient des **nœuds**, pas seulement une liste de records. Cela permet
+de représenter un nom existant sans record `A` et donc de distinguer correctement
+`NODATA` de `NXDOMAIN`.
+
+Les noms DNS sont comparés sans tenir compte de la casse ni d'un éventuel point
+final. Un RRset peut contenir plusieurs adresses `A` pour un même nom ; elles
+sont conservées ensemble dans le résultat de résolution.
