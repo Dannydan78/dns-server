@@ -1,0 +1,14 @@
+AGENTS.md
+  h_c2a7e5a99a87bc 1,3,7,11,13,18,20,22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "56e0b457ce15c8d9670e4003a475e7b6119461a2",
+  "prompts": {},
+  "humans": {
+    "h_c2a7e5a99a87bc": {
+      "author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
