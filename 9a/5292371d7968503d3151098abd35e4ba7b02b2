@@ -1,0 +1,22 @@
+src/resolver/authoritative-resolution.ts
+  s_788f83ba326e1d::t_98f7d6ac337e85 1-15,17-40,42,44-48,53-58
+  s_788f83ba326e1d::t_e77888c632d35d 16,41,43,49-52
+tests/resolver/authoritative-resolution.test.ts
+  s_788f83ba326e1d::t_98f7d6ac337e85 1-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9a5292371d7968503d3151098abd35e4ba7b02b2",
+  "prompts": {},
+  "sessions": {
+    "s_788f83ba326e1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b4f5-38ab-77b2-9b10-c511f84bdb2f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
