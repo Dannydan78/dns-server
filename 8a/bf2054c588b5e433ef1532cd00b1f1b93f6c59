@@ -1,0 +1,25 @@
+src/dns/encode-response.ts
+  s_788f83ba326e1d::t_407956f9519d76 1-2,12-18,34-36,73,81,83-90,93-98,101-104,107-110,113-130,132-155,158-159,190-209,242
+  s_788f83ba326e1d::t_7a1e600f588f72 41-49,161-184
+  s_788f83ba326e1d::t_653a9e99b5f2b2 156-157
+  s_788f83ba326e1d::t_aedb1c3fc40b4a 160
+tests/dns/encode-response.test.ts
+  s_788f83ba326e1d::t_407956f9519d76 6-9,97-165
+  s_788f83ba326e1d::t_fca8f68b986c84 166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8abf2054c588b5e433ef1532cd00b1f1b93f6c59",
+  "prompts": {},
+  "sessions": {
+    "s_788f83ba326e1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b4f5-38ab-77b2-9b10-c511f84bdb2f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Danny Darragon Konki <danny.darragon.konki@pairprog.io>"
+    }
+  }
+}
